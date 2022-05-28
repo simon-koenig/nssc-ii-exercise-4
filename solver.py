@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-from lib2to3.pytree import Node
 import numpy as np
 from mesh_basic import elements_coords, L, elements, nx, ny
 
@@ -56,8 +55,6 @@ for i in range (len(coords)):
     coeff_b[var] = val[2]
     coeff_c[var] = val[3]
 
-#print (coeff_b)
-
 ## Global stiffness matrix
 def global_stiffness_matrix(dim_x,dim_y,local_matrices,All_elements):
     GSF = np.zeros((dim_x*dim_x,dim_y*dim_y))
@@ -95,7 +92,6 @@ T[nx*nx-nx:nx*nx]=293.
 # Neumann on the lower boundary
 P[0:ny] = q*L*h_z/(2*(nx-1))
 P[1:ny-1] += q*L*h_z/(2*(nx-1))
-#print (P)
 
 ## SOLVE
 #Split the system
@@ -109,15 +105,16 @@ P1 = P[0:ny*ny-ny]
 P2 = P[ny*ny-ny:]
 
 # First part
-T1[0:nx*nx-(nx)] = np.linalg.solve(H1,P1-np.matmul(H2,T2))      #using H2 instead of H3 because of dimensions and symmetricity
+T1[0:nx*nx-(nx)] = np.linalg.solve(H1,P1-np.matmul(np.transpose(H3),T2))
 
 # Second part
-P2 = np.matmul(H3,T1)+np.matmul(H4,T2)                          #same as above
+P2 = np.matmul(np.transpose(H2),T1) + np.matmul(H4,T2)
 
 ## Save whole T and P
 T[0:nx*nx-nx] = T1
 P[nx*nx-nx:] = P2
 
+## Save elementwise Temperatures                #done stupidly...it works but maybe use something more elegant?
 T_elems = {}
 count = 0
 for el in  elements:
@@ -126,7 +123,19 @@ for el in  elements:
     c = int(el[2])
     T_elems[count] = [float(T[a]),float(T[b]),float(T[c])]
     count += 1
-print (T_elems)
+
+## Temperature gradient and heat flux
+d_T = {}
+q_i = {}
+for el in T_elems:
+    B = [coeff_b[el], coeff_c[el]]
+    d_T[el] = 1/(2*Area[el])*np.matmul(B,np.transpose(T_elems[el]))
+    q_i[el] = -k*d_T[el]
+    
+print ("Temperatures for each element: "+"\n" + str(T_elems)+"\n")
+print ("Temperature gradient for each element: "+"\n" + str(d_T)+"\n")
+print ("Heat flux for each element: "+"\n"+ str(q_i)+"\n")
 
 
-
+## Plots
+# to be done
