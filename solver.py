@@ -13,11 +13,10 @@ c = 20.
 # Imported geometry
 L = 0.01
 # Set number of points in R2 and set variation
-nx,ny = 3,3
-variation = 1
+nx,ny = 10,10
+variation = 2
 # Make nodes
 nodes = make_nodes(L,nx,ny,variation)
-plt.scatter(*zip(*nodes))
 # Make elements
 elements = make_elements(nx,ny)
 
@@ -159,24 +158,43 @@ print ("Heat flux for each element: "+"\n"+ str(q_i)+"\n")
 ## Plots
 # to be done
 # %%
+plt.scatter(*zip(*nodes), color = 'black')
+
+
+#%%
 x,y = np.array(nodes).T
 T_rs = T.reshape((nx,ny))
 x_rs = x.reshape((nx,ny))
 y_rs = y.reshape((nx,ny))
 
+def trunc(values, decs=0):
+    return np.trunc(values*10**decs)/(10**decs)
+levels = list(set(trunc(T, decs=4).flatten()))
+levels.sort()
 fig,ax=plt.subplots(1,1)
-cp = ax.contourf(x_rs, y_rs, T_rs)
-fig.colorbar(cp) # Add a colorbar to a plot
+cp = ax.contourf(
+    x_rs,
+    y_rs,
+    T_rs,
+    levels = levels,
+    #colors = 'red'
+    )
+#fig.colobar(T)
+fig.colorbar(cp, ax=ax, shrink=0.9)
+
+#ax.clabel(cp, inline=False, fontsize=10)
 ax.set_title('Filled Contours Plot')
+plt.xlim([-0.001, L + 0.001])
+plt.ylim([-0.001, L + 0.001])
+
 #ax.set_xlabel('x (cm)')
 ax.set_ylabel('y (cm)')
+ax.scatter(*zip(*nodes), color = 'black')
 plt.show()
 # %%
-dT_rs = d_T.reshape((nx,ny))
 
 
-fig,ax=plt.subplots(1,1)
-cp = ax.contourf(x_rs, y_rs, dT_rs)
+cp = ax.contourf(x_rs, y_rs, dT_rs, )
 fig.colorbar(cp) # Add a colorbar to a plot
 ax.set_title('Filled Contours Plot')
 #ax.set_xlabel('x (cm)')

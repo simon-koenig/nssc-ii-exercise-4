@@ -52,30 +52,3 @@ def make_elements(nx,ny):
             elements[current_elem+1] = [v2,v4,v3]
     return elements
 
-
-
-# Make Triangulation    
-# Set Length of grid
-L = 0.01
-# Set number of points in x and y direction 
-nx,ny = 3,3
-
-# Make nodes
-nodes = make_nodes(L,nx,ny)
-# Print for debug
-#print("Nodes of the grid:  \n")
-#[print(node) for node in nodes]
-#print(f"Number of nodes: {len(nodes)}")
-
-# Make elements
-elements = make_elements(nx,ny)
-#print("Elements of the grid:  \n")
-#print(elements)
-
-# Make list of elements with the entries not as nodes but as coordinates of nodes
-elements_coords = []
-for element in elements:
-    elem_coords = [nodes[int(element[0])], nodes[int(element[1])], nodes[int(element[2])]]
-    #print(elem_coords)
-    elements_coords.append(elem_coords)
-#print(elements_coords)

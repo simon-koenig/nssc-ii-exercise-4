@@ -62,9 +62,8 @@ def make_elements(nx,ny):
 L = 0.01
 # Set number of points in x and y direction 
 nx,ny = 9,9
-#%%
 # Make nodes
-nodes = make_nodes(L,nx,ny,2)
+nodes = make_nodes(L,nx,ny,1)
 # Print for debug
 plt.scatter(*zip(*nodes))
 # print("Nodes of the grid:  \n")
