@@ -13,6 +13,42 @@ def make_nodes(L,nx,ny):
     nodes = [[xp,yp] for rows,cols in zip(xgrid,ygrid) for xp,yp in zip(rows,cols)]
     return nodes 
 
+def make_nodes(L,nx,ny, variation = 0):
+    x = np.linspace(0,L,nx)
+    y = np.linspace(0,L,ny)
+
+    # Make mesh
+    xgrid,ygrid = np.meshgrid(x,y)
+        
+    #Print(xgrid,ygrid)
+    nodes = [[xp,yp] for rows,cols in zip(xgrid,ygrid) for xp,yp in zip(rows,cols)]
+
+    if variation == 1:
+        def xp_trapez(xp,yp,L):
+            return -(xp*yp)/(2*L) + xp
+        nodes = [[xp_trapez(xp,yp,L),yp] for rows,cols in zip(xgrid,ygrid) for xp,yp in zip(rows,cols)]
+
+    if variation == 2:
+        def xp_quadratic(xp,yp,L):
+            B = yp/(2*L)
+            return xp*((xp*B/L) - B + 1)
+        nodes = [[xp_quadratic(xp,yp,L),yp] for rows,cols in zip(xgrid,ygrid) for xp,yp in zip(rows,cols)]
+
+    if variation == 3:
+        def xp_annulus(xp,yp,L):
+            r = L + xp
+            phi = (np.pi * yp)/(4*L)
+            return 2*L - r * np.cos(phi)
+        def yp_annulus(xp,yp,L):
+            r = L + xp
+            phi = (np.pi * yp)/(4*L)
+            return r * np.sin(phi)
+
+        nodes = [[xp_annulus(xp,yp,L),yp_annulus(xp,yp,L)] for rows,cols in zip(xgrid,ygrid) for xp,yp in zip(rows,cols)]
+    return nodes 
+
+
+
 
 # Empty list of triangles, list will be of length (L*L*2), every list entry is a list of 
 # 3 elements. With each element representing a node. 

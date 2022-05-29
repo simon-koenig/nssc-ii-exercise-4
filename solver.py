@@ -1,6 +1,8 @@
+#%%
 #! /usr/bin/env python
 import numpy as np
-from mesh_basic import elements_coords, L, elements, nx, ny
+from mesh import make_elements, make_nodes
+import matplotlib.pyplot as plt
 
 # Given data
 k = 401.
@@ -9,6 +11,23 @@ q = 1000000
 c = 20.
 
 # Imported geometry
+L = 0.01
+# Set number of points in R2 and set variation
+nx,ny = 3,3
+variation = 1
+# Make nodes
+nodes = make_nodes(L,nx,ny,variation)
+plt.scatter(*zip(*nodes))
+# Make elements
+elements = make_elements(nx,ny)
+
+# Make list of elements with the entries not as nodes but as coordinates of nodes
+elements_coords = []
+for element in elements:
+    elem_coords = [nodes[int(element[0])], nodes[int(element[1])], nodes[int(element[2])]]
+    elements_coords.append(elem_coords)
+
+
 coords = elements_coords
 # coords = [[[0.,0.],[L,0.],[0.,L]],[[L,0.],[L,L],[0.,L]]]      #this was a test
 
@@ -139,3 +158,28 @@ print ("Heat flux for each element: "+"\n"+ str(q_i)+"\n")
 
 ## Plots
 # to be done
+# %%
+x,y = np.array(nodes).T
+T_rs = T.reshape((nx,ny))
+x_rs = x.reshape((nx,ny))
+y_rs = y.reshape((nx,ny))
+
+fig,ax=plt.subplots(1,1)
+cp = ax.contourf(x_rs, y_rs, T_rs)
+fig.colorbar(cp) # Add a colorbar to a plot
+ax.set_title('Filled Contours Plot')
+#ax.set_xlabel('x (cm)')
+ax.set_ylabel('y (cm)')
+plt.show()
+# %%
+dT_rs = d_T.reshape((nx,ny))
+
+
+fig,ax=plt.subplots(1,1)
+cp = ax.contourf(x_rs, y_rs, dT_rs)
+fig.colorbar(cp) # Add a colorbar to a plot
+ax.set_title('Filled Contours Plot')
+#ax.set_xlabel('x (cm)')
+ax.set_ylabel('y (cm)')
+plt.show()
+# %%
