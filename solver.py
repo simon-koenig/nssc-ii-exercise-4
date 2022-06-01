@@ -3,18 +3,33 @@
 import numpy as np
 from mesh import make_elements, make_nodes
 import matplotlib.pyplot as plt
+import argparse
+
+## Command line input to destinguish versions
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('variant', nargs='?', const=1, default=0)
+    return parser.parse_args()
+args = parse_arguments()
 
 # Given data
 k = 401.
 h_z = 0.001
 q = 1000000
 c = 20.
+elements_to_be_modified = [
+                          40,41,42,43,44,45,46,47,
+                          58,59,60,61,62,63,64,
+                          76,77,78,79,80,
+                          94,95,96
+                          ]                             # -1 than in input file, as our numbering starts from 0
 
 # Imported geometry
 L = 0.01
 # Set number of points in R2 and set variation
 nx,ny = 10,10
-variation = 2
+variation = float(args.variant)                         # must be float as we use 4.1 and 4.2
+
 # Make nodes
 nodes = make_nodes(L,nx,ny,variation)
 # Make elements
@@ -26,9 +41,26 @@ for element in elements:
     elem_coords = [nodes[int(element[0])], nodes[int(element[1])], nodes[int(element[2])]]
     elements_coords.append(elem_coords)
 
-
 coords = elements_coords
 # coords = [[[0.,0.],[L,0.],[0.,L]],[[L,0.],[L,L],[0.,L]]]      #this was a test
+
+## V4
+K = {}
+for i in range (len(coords)):
+    var = i
+    if variation == 4.1:
+        if var in elements_to_be_modified:
+            val = k*c
+        else:
+            val = k
+    elif variation == 4.2:
+        if var in elements_to_be_modified:
+            val = k/c
+        else:
+            val = k
+    else:
+        val = k
+    K[var] = val
 
 ## Local stiffness matrix
 def local_stiffness_matrix(element):
@@ -50,10 +82,10 @@ def local_stiffness_matrix(element):
     c2 = x1-x3
     c3 = x2-x1
     # Area
-    delta = (x1*b1 + x2*b2 + x3*b3)/2
+    delta = 1/2*np.abs(np.cross([x2-x1,y2-y1],[x3-x1,y3-y1]))
     # As k_xx = k_yy and k_xy = 0 the stiffness matrix is easier
     ## Stiffness matrix
-    w = k*h_z/(4*delta)
+    w = K[i]*h_z/(4*delta)
     H_e_out = [[(b1*b1+c1*c1)*w,(b1*b2+c1*c2)*w,(b1*b3+c1*c3)*w],
                [(b2*b1+c2*c1)*w,(b2*b2+c2*c2)*w,(b2*b3+c2*c3)*w],
                [(b3*b1+c3*c1)*w,(b3*b2+c3*c2)*w,(b3*b3+c3*c3)*w]]
@@ -76,7 +108,6 @@ for i in range (len(coords)):
 ## Global stiffness matrix
 def global_stiffness_matrix(dim_x,dim_y,local_matrices,All_elements):
     GSF = np.zeros((dim_x*dim_x,dim_y*dim_y))
-    #print (H)
     for el in local_matrices:
         procEL = local_matrices[el]             # now processing this element
         nodesEL = All_elements[el]              # corresponding nodes
@@ -150,9 +181,9 @@ for el in T_elems:
     d_T[el] = 1/(2*Area[el])*np.matmul(B,np.transpose(T_elems[el]))
     q_i[el] = -k*d_T[el]
     
-print ("Temperatures for each element: "+"\n" + str(T_elems)+"\n")
-print ("Temperature gradient for each element: "+"\n" + str(d_T)+"\n")
-print ("Heat flux for each element: "+"\n"+ str(q_i)+"\n")
+#print ("Temperatures for each element: "+"\n" + str(T_elems)+"\n")
+#print ("Temperature gradient for each element: "+"\n" + str(d_T)+"\n")
+#print ("Heat flux for each element: "+"\n"+ str(q_i)+"\n")
 
 
 ## Plots
