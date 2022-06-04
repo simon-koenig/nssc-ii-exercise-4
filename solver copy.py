@@ -1,5 +1,6 @@
 #%%
 #! /usr/bin/env python
+from lib2to3.pytree import HUGE
 import numpy as np
 from mesh import make_elements, make_nodes
 import matplotlib.pyplot as plt
@@ -26,9 +27,9 @@ elements_to_be_modified = [
 
 # Imported geometry
 L = 0.01 # length of box
-nx,ny = 5,5 # (n,n) box
+nx,ny = 10,10 # (n,n) box
 #variation = float(args.variant)                         # must be float as we use 4.1 and 4.2
-variation = 0
+variation = 2
 
 nodes = make_nodes(L,nx,ny,variation)
 elements = make_elements(nx,ny)
@@ -170,24 +171,25 @@ for el in  elements:
     T_elems[count] = [float(T[a]),float(T[b]),float(T[c])]
     count += 1
 
+#%%
 ## Temperature gradient and heat flux
 d_T = {}
+dT = []
 q_i = {}
+qi = []
 for el in T_elems:
     B = [coeff_b[el], coeff_c[el]]
     d_T[el] = 1/(2*Area[el])*np.matmul(B,np.transpose(T_elems[el]))
+    dT.append(d_T[el])
     q_i[el] = -k*d_T[el]
+    qi.append(q_i[el])
     
 #print ("Temperatures for each element: "+"\n" + str(T_elems)+"\n")
 #print ("Temperature gradient for each element: "+"\n" + str(d_T)+"\n")
 #print ("Heat flux for each element: "+"\n"+ str(q_i)+"\n")
 
 
-## Plots
-# to be done
-# %%
-#plt.triplot(*zip(*nodes), triangles=elements)
-
+## Plot: Temperature
 #%%
 T = T.round(1)
 x,y = np.array(nodes).T
@@ -199,9 +201,7 @@ def trunc(values, decs=0):
     return np.trunc(values*10**decs)/(10**decs)
 levels = list(set(trunc(T, decs=4).flatten()))
 levels.sort()
-clev = np.arange(T.min(),T.max() + 0.2,0.2) #Adjust the .001 to get finer gradient
-#%%
-
+clev = np.arange(T.min(),T.max() + 0.5,0.5) #Adjust the .001 to get finer gradient
 
 fig,ax=plt.subplots(1,1, figsize = (14,10))
 cp = ax.contourf(
@@ -213,8 +213,61 @@ cp = ax.contourf(
     )
 fig.colorbar(cp, ax=ax, shrink=0.9)
 #ax.clabel(cp, cp.levels, inline=True, fontsize=10)
-
 ax.triplot(*zip(*nodes), triangles=elements, color='black', lw=0.8)
+
+xx,yy = zip(*nodes)
+step_x = (max(xx) - min(xx)) / len(xx)
+step_y = (max(yy) - min(yy)) / len(yy)
+ax.set_title('Filled Contours Plot')
+plt.xlim([min(x)- 2*step_x, max(x) + 2*step_x])
+plt.ylim([min(y)- 2*step_y, max(y) + 2*step_y])
+ax.set_xlabel('x (cm)')
+ax.set_ylabel('y (cm)')
+plt.show()
+
+
+## Plot: Temperature Gradient and Fluxes
+#%%
+element_coords = []
+for el in elements:
+    _coords = []
+    for node_ind in el:
+        _coords.append(nodes[int(node_ind)])
+    element_coords.append(np.mean(np.array(_coords), axis = 0 ))
+
+el_x, el_y = zip(*element_coords)
+dT_x, dT_y = zip(*dT)
+qi_x, qi_y = zip(*qi)
+
+T = T.round(1)
+x,y = np.array(nodes).T
+T_rs = T.reshape((nx,ny))
+x_rs = x.reshape((nx,ny))
+y_rs = y.reshape((nx,ny))
+
+def trunc(values, decs=0):
+    return np.trunc(values*10**decs)/(10**decs)
+levels = list(set(trunc(T, decs=4).flatten()))
+levels.sort()
+clev = np.arange(T.min(),T.max() + 0.5,0.5) #Adjust the .001 to get finer gradient
+
+fig,ax=plt.subplots(1,1, figsize = (14,10))
+cp = ax.contourf(
+    x_rs,
+    y_rs,
+    T_rs,
+    levels = clev, #old version: levels
+    cmap = 'coolwarm'
+    )
+fig.colorbar(cp, ax=ax, shrink=0.9)
+#ax.clabel(cp, cp.levels, inline=True, fontsize=10)
+ax.triplot(*zip(*nodes), triangles=elements, color='black', lw=0.8)
+ax.quiver(el_x,el_y, dT_x, dT_y, color = 'black')
+
+# ax.quiverkey(q, X=0.3, Y=1.1, U=10,
+#              label='Quiver key, length = 10', labelpos='E')
+
+#q = ax.quiver(el_x,el_y, qi_x, qi_y, color = 'red')
 
 
 xx,yy = zip(*nodes)
@@ -228,13 +281,6 @@ ax.set_ylabel('y (cm)')
 plt.show()
 
 
-# %%
 
 
-cp = ax.contour(x_rs, y_rs, dT_rs, )
-fig.colorbar(cp) # Add a colorbar to a plot
-ax.set_title('Filled Contours Plot')
-#ax.set_xlabel('x (cm)')
-ax.set_ylabel('y (cm)')
-plt.show()
 # %%
