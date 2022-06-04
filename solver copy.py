@@ -29,7 +29,7 @@ elements_to_be_modified = [
 L = 0.01 # length of box
 nx,ny = 10,10 # (n,n) box
 #variation = float(args.variant)                         # must be float as we use 4.1 and 4.2
-variation = 2
+variation = 4.2
 
 nodes = make_nodes(L,nx,ny,variation)
 elements = make_elements(nx,ny)
