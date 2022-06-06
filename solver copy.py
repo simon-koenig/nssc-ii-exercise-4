@@ -29,7 +29,7 @@ elements_to_be_modified = [
 L = 0.01 # length of box
 nx,ny = 10,10 # (n,n) box
 #variation = float(args.variant)                         # must be float as we use 4.1 and 4.2
-variation = 4.2
+variation = 3
 
 nodes = make_nodes(L,nx,ny,variation)
 elements = make_elements(nx,ny)
@@ -171,7 +171,6 @@ for el in  elements:
     T_elems[count] = [float(T[a]),float(T[b]),float(T[c])]
     count += 1
 
-#%%
 ## Temperature gradient and heat flux
 d_T = {}
 dT = []
@@ -181,7 +180,7 @@ for el in T_elems:
     B = [coeff_b[el], coeff_c[el]]
     d_T[el] = 1/(2*Area[el])*np.matmul(B,np.transpose(T_elems[el]))
     dT.append(d_T[el])
-    q_i[el] = -k*d_T[el]
+    q_i[el] = -K[el]*d_T[el]
     qi.append(q_i[el])
     
 #print ("Temperatures for each element: "+"\n" + str(T_elems)+"\n")
@@ -190,7 +189,6 @@ for el in T_elems:
 
 
 ## Plot: Temperature
-#%%
 T = T.round(1)
 x,y = np.array(nodes).T
 T_rs = T.reshape((nx,ny))
@@ -267,7 +265,7 @@ ax.quiver(el_x,el_y, dT_x, dT_y, color = 'black')
 # ax.quiverkey(q, X=0.3, Y=1.1, U=10,
 #              label='Quiver key, length = 10', labelpos='E')
 
-#q = ax.quiver(el_x,el_y, qi_x, qi_y, color = 'red')
+ax.quiver(el_x,el_y, qi_x, qi_y, color = 'red')
 
 
 xx,yy = zip(*nodes)
@@ -276,8 +274,8 @@ step_y = (max(yy) - min(yy)) / len(yy)
 ax.set_title('Filled Contours Plot')
 plt.xlim([min(x)- 2*step_x, max(x) + 2*step_x])
 plt.ylim([min(y)- 2*step_y, max(y) + 2*step_y])
-ax.set_xlabel('x (cm)')
-ax.set_ylabel('y (cm)')
+ax.set_xlabel('x (m)')
+ax.set_ylabel('y (m)')
 plt.show()
 
 

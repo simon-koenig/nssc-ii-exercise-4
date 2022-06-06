@@ -25,12 +25,12 @@ def make_nodes(L,nx,ny, variation = 0):
 
     if variation == 3:
         def xp_annulus(xp,yp,L):
-            r = L + xp
-            phi = (np.pi * yp)/(4*L)
-            return 2*L - r * np.cos(phi)
+            r = 2*L - xp
+            phi = np.pi - (np.pi * yp)/(4*L)
+            return 2*L + r * np.cos(phi)
         def yp_annulus(xp,yp,L):
-            r = L + xp
-            phi = (np.pi * yp)/(4*L)
+            r = 2*L - xp
+            phi = np.pi - (np.pi * yp)/(4*L)
             return r * np.sin(phi)
 
         nodes = [[xp_annulus(xp,yp,L),yp_annulus(xp,yp,L)] for rows,cols in zip(xgrid,ygrid) for xp,yp in zip(rows,cols)]
