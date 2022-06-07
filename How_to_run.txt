@@ -2,7 +2,7 @@ please run as following
 
 python solver.py version
 
-posibilities for version:
+possibilities for version:
 	1. empty or 0	:basic variant
 	2. 1		:V1
 	3. 2		:V2
