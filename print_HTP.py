@@ -1,4 +1,4 @@
-def print_HTP(H, T, P, filename="output.txt"):
+def print_HTP(H, T, P, filename):
     """
     Print matrices to .txt-file (name of file = filename).
     H... overall assembled stiffness matrix

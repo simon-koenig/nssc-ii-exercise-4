@@ -1,10 +1,8 @@
-#%%
 #! /usr/bin/env python
-from tkinter import N
 import numpy as np
 from mesh import make_elements, make_nodes
 from plots import plot_graph
-import matplotlib.pyplot as plt
+from print_HTP import print_HTP
 import argparse
 
 
@@ -13,7 +11,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('variant', nargs='?', const=1, default=0)
     return parser.parse_args()
-#args = parse_arguments()
+args = parse_arguments()
 
 # Given data
 k = 401.
@@ -30,14 +28,12 @@ elements_to_be_modified = [
 # Imported geometry
 L = 0.01 # length of box
 nx,ny = 10,10 # (n,n) box
-#variation = float(args.variant)                         # must be float as we use 4.1 and 4.2
-variation = 4.2
+variation = float(args.variant)                         # must be float as we use 4.1 and 4.2
 
 nodes = make_nodes(L,nx,ny,variation)
 elements = make_elements(nx,ny)
 
 # Make list of elements with the entries not as nodes but as coordinates of nodes
-
 element_coords = [[nodes[int(element[0])], nodes[int(element[1])], nodes[int(element[2])]] 
     for element in elements]
 coords = element_coords
@@ -122,7 +118,6 @@ def global_stiffness_matrix(dim_x,dim_y,local_matrices,All_elements):
 
 # Save global stiffness matrix
 H = global_stiffness_matrix(nx, ny, H_e, elements)
-#print(H)
 
 ##Solution and RHS vectors
 T = np.zeros((nx*nx,1))
@@ -154,7 +149,7 @@ P2 = np.matmul(np.transpose(H2),T1) + np.matmul(H4,T2)
 T[0:nx*nx-nx] = T1
 P[nx*nx-nx:] = P2
 
-## Save elementwise Temperatures                #done stupidly...it works but maybe use something more elegant?
+## Save elementwise Temperatures
 T_elems = {}
 count = 0
 for el in  elements:
@@ -176,8 +171,15 @@ for el in T_elems:
     q_i[el] = -K[el]*d_T[el]
     qi.append(q_i[el])
 
+## Save output
+# Just to have nicer names
+if variation % 1 == 0:
+    VarNr = int(variation)
+else:
+    VarNr = variation
+# Write output using given function
+file = 'output_V'+str(VarNr)+'.txt'
+print_HTP(H,T,P,file)
     
 ## Plot: Temperature Gradient and Fluxes
-plot_graph(elements, nodes, T, dT, qi, nx, ny, variation)
-
-# %%
+plot_graph(elements, nodes, T, dT, qi, nx, ny, VarNr)
