@@ -1,16 +1,19 @@
 #%%
 #! /usr/bin/env python
+from tkinter import N
 import numpy as np
 from mesh import make_elements, make_nodes
+from plots import plot_graph
 import matplotlib.pyplot as plt
 import argparse
+
 
 ## Command line input to destinguish versions
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('variant', nargs='?', const=1, default=0)
     return parser.parse_args()
-args = parse_arguments()
+#args = parse_arguments()
 
 # Given data
 k = 401.
@@ -25,41 +28,31 @@ elements_to_be_modified = [
                           ]                             # -1 than in input file, as our numbering starts from 0
 
 # Imported geometry
-L = 0.01
-# Set number of points in R2 and set variation
-nx,ny = 10,10
-variation = float(args.variant)                         # must be float as we use 4.1 and 4.2
+L = 0.01 # length of box
+nx,ny = 10,10 # (n,n) box
+#variation = float(args.variant)                         # must be float as we use 4.1 and 4.2
+variation = 4.2
 
-# Make nodes
 nodes = make_nodes(L,nx,ny,variation)
-# Make elements
 elements = make_elements(nx,ny)
 
 # Make list of elements with the entries not as nodes but as coordinates of nodes
-elements_coords = []
-for element in elements:
-    elem_coords = [nodes[int(element[0])], nodes[int(element[1])], nodes[int(element[2])]]
-    elements_coords.append(elem_coords)
 
-coords = elements_coords
-# coords = [[[0.,0.],[L,0.],[0.,L]],[[L,0.],[L,L],[0.,L]]]      #this was a test
+element_coords = [[nodes[int(element[0])], nodes[int(element[1])], nodes[int(element[2])]] 
+    for element in elements]
+coords = element_coords
 
 ## V4
 K = {}
 for i in range (len(coords)):
     var = i
+    val = k
     if variation == 4.1:
         if var in elements_to_be_modified:
             val = k*c
-        else:
-            val = k
     elif variation == 4.2:
         if var in elements_to_be_modified:
             val = k/c
-        else:
-            val = k
-    else:
-        val = k
     K[var] = val
 
 ## Local stiffness matrix
@@ -155,10 +148,8 @@ P2 = P[ny*ny-ny:]
 
 # First part
 T1[0:nx*nx-(nx)] = np.linalg.solve(H1,P1-np.matmul(np.transpose(H3),T2))
-
 # Second part
 P2 = np.matmul(np.transpose(H2),T1) + np.matmul(H4,T2)
-
 ## Save whole T and P
 T[0:nx*nx-nx] = T1
 P[nx*nx-nx:] = P2
@@ -175,60 +166,18 @@ for el in  elements:
 
 ## Temperature gradient and heat flux
 d_T = {}
+dT = []
 q_i = {}
+qi = []
 for el in T_elems:
     B = [coeff_b[el], coeff_c[el]]
     d_T[el] = 1/(2*Area[el])*np.matmul(B,np.transpose(T_elems[el]))
-    q_i[el] = -k*d_T[el]
+    dT.append(d_T[el])
+    q_i[el] = -K[el]*d_T[el]
+    qi.append(q_i[el])
+
     
-#print ("Temperatures for each element: "+"\n" + str(T_elems)+"\n")
-#print ("Temperature gradient for each element: "+"\n" + str(d_T)+"\n")
-#print ("Heat flux for each element: "+"\n"+ str(q_i)+"\n")
+## Plot: Temperature Gradient and Fluxes
+plot_graph(elements, nodes, T, dT, qi, nx, ny, variation)
 
-
-## Plots
-# to be done
-# %%
-plt.scatter(*zip(*nodes), color = 'black')
-
-
-#%%
-x,y = np.array(nodes).T
-T_rs = T.reshape((nx,ny))
-x_rs = x.reshape((nx,ny))
-y_rs = y.reshape((nx,ny))
-
-def trunc(values, decs=0):
-    return np.trunc(values*10**decs)/(10**decs)
-levels = list(set(trunc(T, decs=4).flatten()))
-levels.sort()
-fig,ax=plt.subplots(1,1)
-cp = ax.contourf(
-    x_rs,
-    y_rs,
-    T_rs,
-    levels = levels,
-    #colors = 'red'
-    )
-#fig.colobar(T)
-fig.colorbar(cp, ax=ax, shrink=0.9)
-
-#ax.clabel(cp, inline=False, fontsize=10)
-ax.set_title('Filled Contours Plot')
-plt.xlim([-0.001, L + 0.001])
-plt.ylim([-0.001, L + 0.001])
-
-#ax.set_xlabel('x (cm)')
-ax.set_ylabel('y (cm)')
-ax.scatter(*zip(*nodes), color = 'black')
-plt.show()
-# %%
-
-
-cp = ax.contourf(x_rs, y_rs, dT_rs, )
-fig.colorbar(cp) # Add a colorbar to a plot
-ax.set_title('Filled Contours Plot')
-#ax.set_xlabel('x (cm)')
-ax.set_ylabel('y (cm)')
-plt.show()
 # %%
