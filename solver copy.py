@@ -3,6 +3,7 @@
 from lib2to3.pytree import HUGE
 import numpy as np
 from mesh import make_elements, make_nodes
+from print_HTP import print_HTP
 import matplotlib.pyplot as plt
 import argparse
 
@@ -29,7 +30,7 @@ elements_to_be_modified = [
 L = 0.01 # length of box
 nx,ny = 10,10 # (n,n) box
 #variation = float(args.variant)                         # must be float as we use 4.1 and 4.2
-variation = 3
+variation = 4.2
 
 nodes = make_nodes(L,nx,ny,variation)
 elements = make_elements(nx,ny)
@@ -187,6 +188,10 @@ for el in T_elems:
 #print ("Temperature gradient for each element: "+"\n" + str(d_T)+"\n")
 #print ("Heat flux for each element: "+"\n"+ str(q_i)+"\n")
 
+## Generate output
+file = 'output_V=' + str(variation) + '.txt'
+print_HTP(H,T,P,file)
+
 
 ## Plot: Temperature
 T = T.round(1)
@@ -216,11 +221,11 @@ ax.triplot(*zip(*nodes), triangles=elements, color='black', lw=0.8)
 xx,yy = zip(*nodes)
 step_x = (max(xx) - min(xx)) / len(xx)
 step_y = (max(yy) - min(yy)) / len(yy)
-ax.set_title('Filled Contours Plot')
+ax.set_title('Temperature distribution in K')
 plt.xlim([min(x)- 2*step_x, max(x) + 2*step_x])
 plt.ylim([min(y)- 2*step_y, max(y) + 2*step_y])
-ax.set_xlabel('x (cm)')
-ax.set_ylabel('y (cm)')
+ax.set_xlabel('x (m)')
+ax.set_ylabel('y (m)')
 plt.show()
 
 
@@ -271,7 +276,7 @@ ax.quiver(el_x,el_y, qi_x, qi_y, color = 'red')
 xx,yy = zip(*nodes)
 step_x = (max(xx) - min(xx)) / len(xx)
 step_y = (max(yy) - min(yy)) / len(yy)
-ax.set_title('Filled Contours Plot')
+ax.set_title('Temperature gradients (black) and heat fluxes (red) at element centroids')
 plt.xlim([min(x)- 2*step_x, max(x) + 2*step_x])
 plt.ylim([min(y)- 2*step_y, max(y) + 2*step_y])
 ax.set_xlabel('x (m)')

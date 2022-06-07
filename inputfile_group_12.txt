@@ -11,7 +11,7 @@ SI-units to be used:
 """
 
 # Group number.
-groupnr = 2
+groupnr = 12
 
 # Length in x- and y-direction.
 L = 0.01
